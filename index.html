@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics Hub · Positive Partnerships</title>
+<meta name="description" content="Prototype analytics dashboard for Positive Partnerships bringing workshop, social, and search data into a single Claude-connected view.">
+<link rel="icon" href="pp-logo.png">
+<style>
+/* =========================================================
+   Foundations — Positive Partnerships palette
+   ========================================================= */
+:root {
+  --pp-purple-900: #330044;   /* deepest — section headings, primary text accent */
+  --pp-purple-800: #431b56;
+  --pp-purple-700: #5a2674;
+  --pp-purple-600: #712d90;   /* logo purple — primary brand */
+  --pp-purple-500: #8c4ba7;
+  --pp-purple-300: #b78cc8;
+  --pp-purple-200: #d4b3df;
+  --pp-purple-100: #e9deef;
+  --pp-purple-50:  #f5eff7;
+
+  --pp-red:    #dc2d27;
+  --pp-red-bg: #fbe5e4;
+  --pp-green:  #198754;
+  --pp-green-bg: #d6efe1;
+  --pp-amber:  #ffc107;
+  --pp-amber-bg: #fff3cd;
+  --pp-cyan:   #0dcaf0;
+
+  --ink:     #212529;
+  --ink-2:   #343a40;
+  --ink-3:   #495057;
+  --muted:   #6c757d;
+  --muted-2: #737473;
+  --soft:    #adb5bd;
+  --line:    #dee2e6;
+  --line-soft:#eaecef;
+  --bg:      #f8f9fa;
+  --bg-2:    #f3f1f5;
+  --paper:   #ffffff;
+
+  --shadow-sm: 0 1px 2px rgba(51,0,68,0.05);
+  --shadow-md: 0 1px 2px rgba(51,0,68,0.05), 0 4px 16px -6px rgba(51,0,68,0.10);
+  --shadow-lg: 0 1px 3px rgba(51,0,68,0.07), 0 12px 28px -10px rgba(51,0,68,0.16);
+
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-lg: 10px;
+
+  --font-sans: "Helvetica Neue", "Helvetica", "Arial", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+::selection { background: var(--pp-purple-200); color: var(--pp-purple-900); }
+
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, select { font: inherit; color: inherit; }
+a { color: var(--pp-purple-600); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Page shell */
+.page {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 24px 32px 64px;
+}
+@media (max-width: 900px) { .page { padding: 16px 16px 48px; } }
+
+/* =========================================================
+   Typography helpers
+   ========================================================= */
+.eyebrow {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.eyebrow.purple { color: var(--pp-purple-600); }
+.eyebrow.red    { color: var(--pp-red); }
+.mono { font-family: var(--font-mono); }
+.num  { font-variant-numeric: tabular-nums; }
+
+/* =========================================================
+   Masthead
+   ========================================================= */
+.masthead {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 0 20px;
+  border-bottom: 2px solid var(--pp-purple-900);
+  margin-bottom: 24px;
+}
+.brand {
+  display: flex; align-items: center; gap: 18px;
+}
+.brand-logo {
+  height: 56px;
+  width: auto;
+  display: block;
+}
+@media (max-width: 760px) { .brand-logo { height: 44px; } }
+
+.masthead-title {
+  display: flex; flex-direction: column;
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+}
+.masthead-title h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--pp-purple-900);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.masthead-title .sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.masthead-mid {
+  display: flex; align-items: center; gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.proto-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--pp-amber-bg);
+  border: 1px solid var(--pp-amber);
+  color: #6b4a00;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.proto-pill::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--pp-amber);
+  border-radius: 50%;
+}
+.today-stamp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.connection-strip {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+.connection-strip .label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--muted);
+}
+.connection-strip .label strong {
+  color: var(--pp-purple-700);
+  font-weight: 700;
+}
+.platform-dots { display: flex; gap: 8px; align-items: center; }
+.dot {
+  position: relative;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.dot.live   { background: var(--pp-green); box-shadow: 0 0 0 3px rgba(25,135,84,0.18); }
+.dot.bridge { background: var(--pp-amber); box-shadow: 0 0 0 3px rgba(255,193,7,0.22); }
+.dot.manual { background: var(--pp-red);   box-shadow: 0 0 0 3px rgba(220,45,39,0.18); }
+.dot:hover  { transform: scale(1.4); }
+.dot[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 11px);
+  right: -4px;
+  background: var(--pp-purple-900);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  letter-spacing: 0.01em;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+.dot:hover[data-tooltip]::after { opacity: 1; }
+
+/* =========================================================
+   Hero (flatter, institutional)
+   ========================================================= */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 32px;
+  margin-bottom: 24px;
+  padding-bottom: 8px;
+}
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; gap: 16px; } }
+.hero h2 {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  color: var(--pp-purple-900);
+  max-width: 32ch;
+}
+.hero h2 .accent { color: var(--pp-purple-600); }
+.hero-lede {
+  max-width: 42ch;
+  color: var(--ink-3);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.hero-lede strong { color: var(--pp-purple-900); font-weight: 600; }
+
+/* =========================================================
+   KPI Strip
+   ========================================================= */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+@media (max-width: 1180px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px)  { .kpis { grid-template-columns: repeat(2, 1fr); } }
+
+.kpi {
+  background: var(--paper);
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 148px;
+  position: relative;
+}
+.kpi-label {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.kpi .eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.kpi-source {
+  font-size: 9.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--pp-purple-50);
+  color: var(--pp-purple-700);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.kpi-source.red { background: var(--pp-red-bg); color: var(--pp-red); }
+.kpi-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--pp-purple-900);
+  margin-top: auto;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-value .unit {
+  font-size: 18px;
+  color: var(--muted);
+  margin-left: 2px;
+  font-weight: 500;
+}
+.kpi-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+.kpi-trend {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--pp-green);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.kpi-trend.down { color: var(--pp-red); }
+.kpi-trend.flat { color: var(--muted); }
+.kpi-trend::before {
+  content: '▲';
+  font-size: 9px;
+}
+.kpi-trend.down::before { content: '▼'; }
+.kpi-trend.flat::before { content: '–'; }
+.kpi-spark { width: 80px; height: 26px; flex-shrink: 0; }
+
+/* =========================================================
+   Filter bar
+   ========================================================= */
+.filter-bar {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+@media (max-width: 1100px) { .filter-bar { grid-template-columns: 1fr; } }
+.filter-group {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-group .lab {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: all 0.14s ease;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--pp-purple-300); color: var(--pp-purple-700); background: var(--pp-purple-50); }
+.chip.active {
+  background: var(--pp-purple-600);
+  border-color: var(--pp-purple-600);
+  color: #fff;
+}
+.chip.active .chip-count { color: var(--pp-purple-200); }
+.chip-count {
+  font-size: 11px;
+  color: var(--muted);
+}
+.filter-select {
+  appearance: none;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 6px 28px 6px 11px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: all 0.14s ease;
+}
+.filter-select:hover { border-color: var(--pp-purple-300); }
+.filter-select:focus { outline: 2px solid var(--pp-purple-300); outline-offset: 1px; border-color: var(--pp-purple-600); }
+
+/* Saved views strip */
+.saved-views {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+  padding: 0 2px;
+}
+.saved-views .lab {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--muted);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.saved-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px 5px 11px;
+  border-radius: 4px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.saved-pill:hover { border-color: var(--pp-purple-600); color: var(--pp-purple-700); }
+.saved-pill .x {
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-left: 4px;
+  padding: 0 2px;
+  font-weight: 400;
+}
+.saved-pill .x:hover { color: var(--pp-red); }
+.saved-add {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px dashed var(--line);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.14s ease;
+  text-transform: uppercase;
+}
+.saved-add:hover { border-color: var(--pp-purple-600); color: var(--pp-purple-700); border-style: solid; background: var(--pp-purple-50); }
+
+/* =========================================================
+   Generic panel
+   ========================================================= */
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.panel-head {
+  padding: 18px 22px 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.panel-head h2 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--pp-purple-900);
+}
+.panel-head .panel-meta {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.panel-head .panel-actions {
+  display: flex; gap: 6px;
+  align-items: center;
+}
+.icon-btn {
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  display: grid; place-items: center;
+  color: var(--muted);
+  transition: all 0.14s ease;
+}
+.icon-btn:hover { border-color: var(--pp-purple-300); color: var(--pp-purple-700); background: var(--pp-purple-50); }
+
+/* =========================================================
+   Cross-Reference (centrepiece, now more institutional)
+   ========================================================= */
+.xref {
+  margin-bottom: 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--pp-purple-600);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.xref-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  padding: 22px 26px 12px;
+  align-items: flex-start;
+}
+@media (max-width: 900px) { .xref-head { grid-template-columns: 1fr; } }
+.xref-title {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.xref-title h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.18;
+  color: var(--pp-purple-900);
+  max-width: 32ch;
+}
+.xref-title h2 .accent { color: var(--pp-purple-600); }
+.xref-title .panel-meta { font-size: 13px; color: var(--ink-3); max-width: 64ch; line-height: 1.55; margin-top: 2px; }
+
+.xref-legend {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 4px;
+}
+.legend-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; }
+
+.xref-controls {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 26px 14px;
+  flex-wrap: wrap;
+}
+.xref-controls .chip { font-size: 12px; padding: 5px 10px; }
+
+.xref-chart-wrap {
+  padding: 4px 12px 8px;
+  position: relative;
+  background: linear-gradient(180deg, transparent 0%, var(--bg) 100%);
+}
+.xref-svg {
+  display: block;
+  width: 100%;
+  height: 380px;
+  overflow: visible;
+}
+@media (max-width: 800px) { .xref-svg { height: 320px; } }
+
+.xref-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--pp-purple-900);
+  color: #fff;
+  padding: 9px 12px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-family: var(--font-sans);
+  line-height: 1.45;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity 0.16s ease;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  z-index: 30;
+  min-width: 180px;
+}
+.xref-tooltip.show { opacity: 1; }
+.xref-tooltip .tt-date { color: var(--pp-purple-200); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }
+.xref-tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; }
+.xref-tooltip .tt-label { color: var(--pp-purple-200); }
+.xref-tooltip .tt-row strong { font-variant-numeric: tabular-nums; }
+
+.xref-ask {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  padding: 14px 26px 24px;
+  align-items: start;
+  background: var(--paper);
+  border-top: 1px solid var(--line-soft);
+}
+@media (max-width: 720px) { .xref-ask { grid-template-columns: 1fr; } }
+.xref-ask-label {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-top: 4px;
+  max-width: 24ch;
+}
+.xref-ask-label .eyebrow { color: var(--pp-purple-600); }
+.xref-ask-label .lead {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pp-purple-900);
+}
+.xref-prompts {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  align-items: flex-start;
+}
+.ask-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  background: var(--paper);
+  border: 1px solid var(--pp-purple-200);
+  border-radius: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--pp-purple-900);
+  cursor: pointer;
+  transition: all 0.14s ease;
+  line-height: 1.3;
+  max-width: 100%;
+  text-align: left;
+}
+.ask-chip:hover {
+  background: var(--pp-purple-600);
+  border-color: var(--pp-purple-600);
+  color: #fff;
+}
+.ask-chip:hover .ask-icon path { fill: #fff; }
+.ask-icon { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* =========================================================
+   Two-column (workshops + social)
+   ========================================================= */
+.two-col {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+@media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+
+/* Workshops */
+.workshop-list { padding: 0; }
+.workshop-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--line-soft);
+  transition: background 0.14s ease;
+}
+.workshop-row:first-child { border-top: none; }
+.workshop-row:hover { background: var(--pp-purple-50); }
+.workshop-row .title-block { display: flex; flex-direction: column; gap: 4px; }
+.workshop-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--pp-purple-900);
+  line-height: 1.3;
+}
+.workshop-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.workshop-meta .sep { color: var(--soft); }
+.workshop-tag {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--pp-purple-100);
+  color: var(--pp-purple-700);
+  font-weight: 700;
+}
+.workshop-tag.pl  { background: var(--pp-red-bg);   color: var(--pp-red); }
+.workshop-tag.pc  { background: var(--pp-green-bg); color: var(--pp-green); }
+.workshop-tag.ua  { background: var(--pp-purple-100); color: var(--pp-purple-700); }
+
+.workshop-progress-block {
+  display: flex; flex-direction: column;
+  min-width: 220px;
+  gap: 4px;
+}
+.progress-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.progress-row .frac {
+  font-size: 11px;
+  color: var(--muted);
+}
+.progress-row .frac strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+.progress-row .pct {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--pp-purple-900);
+}
+.progress-bar {
+  height: 6px;
+  width: 100%;
+  background: var(--bg-2);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--pp-purple-600);
+  border-radius: 3px;
+  transition: width 0.7s cubic-bezier(.32,.95,.4,1);
+  width: 0;
+}
+.progress-fill.hot  { background: var(--pp-red); }
+.progress-fill.warm { background: var(--pp-purple-500); }
+
+.source-split {
+  display: flex; justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.source-split span strong { color: var(--ink-2); font-weight: 700; }
+
+.workshop-list .empty {
+  padding: 36px 22px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Social media tabs */
+.social-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.social-tab {
+  padding: 12px 0 12px;
+  margin-right: 22px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  position: relative;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: color 0.14s ease;
+}
+.social-tab .ct {
+  font-size: 10.5px;
+  color: var(--soft);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.social-tab::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 3px;
+  background: var(--pp-purple-600);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+.social-tab.active { color: var(--pp-purple-900); }
+.social-tab.active .ct { color: var(--pp-purple-600); }
+.social-tab.active::after { transform: scaleX(1); }
+.social-tab:hover { color: var(--ink-2); }
+
+.social-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line-soft);
+  border-bottom: 1px solid var(--line);
+}
+.summary-cell {
+  background: var(--paper);
+  padding: 14px 20px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.summary-cell .eyebrow { font-size: 9.5px; }
+.summary-cell .val {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--pp-purple-900);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.summary-cell .delta {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--pp-green);
+}
+.summary-cell .delta.down { color: var(--pp-red); }
+
+.post-list { padding: 0; }
+.post-row {
+  padding: 14px 22px;
+  border-top: 1px solid var(--line-soft);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  transition: background 0.14s ease;
+}
+.post-row:hover { background: var(--pp-purple-50); }
+.post-row:first-child { border-top: none; }
+.post-text {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink);
+  max-width: 60ch;
+}
+.post-text .promo-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--pp-purple-100);
+  color: var(--pp-purple-700);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: 1px;
+  font-weight: 700;
+}
+.post-stats {
+  display: flex; flex-direction: column;
+  gap: 3px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 130px;
+  font-variant-numeric: tabular-nums;
+}
+.post-stats .row {
+  display: flex; justify-content: space-between; gap: 14px;
+}
+.post-stats .row strong {
+  color: var(--pp-purple-900);
+  font-weight: 700;
+}
+
+/* =========================================================
+   Website & Search panel
+   ========================================================= */
+.web-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--line-soft);
+}
+@media (max-width: 1000px) { .web-grid { grid-template-columns: 1fr; } }
+.web-cell { background: var(--paper); padding: 20px 22px; }
+.web-cell h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.web-cell h3 .src {
+  font-size: 9.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--pp-purple-100);
+  color: var(--pp-purple-700);
+  letter-spacing: 0.04em;
+}
+.web-cell h3 .src.amber { background: var(--pp-amber-bg); color: #6b4a00; }
+
+.sources-list { display: flex; flex-direction: column; gap: 10px; }
+.source-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.source-bar-wrap {
+  display: flex; flex-direction: column; gap: 4px;
+  width: 100%;
+}
+.source-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.source-bar {
+  height: 5px;
+  background: var(--bg-2);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.source-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--pp-purple-600);
+  border-radius: 3px;
+  transition: width 0.7s cubic-bezier(.32,.95,.4,1);
+  width: 0;
+}
+.source-bar-fill.coral { background: var(--pp-red); }
+.source-bar-fill.amber { background: var(--pp-amber); }
+.source-bar-fill.moss  { background: var(--pp-green); }
+.source-stat {
+  display: flex; flex-direction: column;
+  align-items: flex-end;
+  min-width: 90px;
+  font-variant-numeric: tabular-nums;
+}
+.source-stat .num {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pp-purple-900);
+  letter-spacing: -0.01em;
+}
+.source-stat .pct { font-size: 10px; color: var(--muted); }
+
+.page-list { display: flex; flex-direction: column; gap: 8px; }
+.page-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0 8px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.page-row:last-child { border-bottom: none; }
+.page-path {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.page-views {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pp-purple-900);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ads-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  margin-bottom: 14px;
+}
+.ad-cell {
+  display: flex; flex-direction: column;
+  gap: 2px;
+}
+.ad-cell .eyebrow { font-size: 9.5px; }
+.ad-cell .val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--pp-purple-900);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.ad-cell .val.muted { color: var(--muted); }
+.aeo-section {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+.aeo-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.aeo-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 36px;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+.aeo-name { color: var(--ink-2); font-weight: 500; }
+.aeo-bar-fill {
+  height: 5px;
+  background: var(--pp-purple-600);
+  border-radius: 3px;
+  transition: width 0.7s cubic-bezier(.32,.95,.4,1);
+}
+.aeo-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pp-purple-900);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   Integration Status
+   ========================================================= */
+.integration {
+  margin-top: 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.integration .panel-head { padding-bottom: 14px; }
+.integration-key {
+  display: flex; gap: 18px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  flex-wrap: wrap;
+  padding: 10px 22px 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.integration-key span {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-weight: 500;
+}
+.key-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+}
+.key-dot.live   { background: var(--pp-green); box-shadow: 0 0 0 3px rgba(25,135,84,0.18); }
+.key-dot.bridge { background: var(--pp-amber); box-shadow: 0 0 0 3px rgba(255,193,7,0.22); }
+.key-dot.manual { background: var(--pp-red);   box-shadow: 0 0 0 3px rgba(220,45,39,0.18); }
+
+.integration-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.integration-table thead th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 10px 22px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.integration-table tbody td {
+  padding: 14px 22px;
+  border-top: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+.integration-table tbody tr:hover { background: var(--pp-purple-50); }
+.platform-cell {
+  display: flex; align-items: center; gap: 12px;
+}
+.platform-icon {
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  display: grid; place-items: center;
+  background: var(--bg-2);
+  color: var(--pp-purple-700);
+  flex-shrink: 0;
+}
+.platform-icon svg { width: 15px; height: 15px; }
+.platform-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pp-purple-900);
+  letter-spacing: -0.005em;
+}
+.platform-note { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+.status-cell {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.method-tag {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: var(--bg-2);
+  color: var(--ink-3);
+}
+.method-tag.native  { background: var(--pp-green-bg); color: var(--pp-green); }
+.method-tag.bridge  { background: var(--pp-amber-bg); color: #6b4a00; }
+.method-tag.manual  { background: var(--pp-red-bg);   color: var(--pp-red); }
+.next-step {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  max-width: 38ch;
+  line-height: 1.45;
+}
+.next-step strong { color: var(--pp-purple-900); font-weight: 700; }
+
+/* =========================================================
+   Footer
+   ========================================================= */
+.foot {
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  flex-wrap: wrap;
+}
+.foot .note { max-width: 64ch; }
+.foot .note strong {
+  display: block;
+  font-size: 14px;
+  color: var(--pp-purple-900);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.foot-meta { text-align: right; font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+.foot-meta a { color: var(--pp-purple-700); border-bottom: 1px solid var(--pp-purple-200); }
+.foot-meta a:hover { color: var(--pp-purple-900); text-decoration: none; }
+
+/* =========================================================
+   Animation entrances
+   ========================================================= */
+.reveal { opacity: 0; transform: translateY(6px); animation: reveal 0.5s cubic-bezier(.32,.95,.4,1) forwards; }
+@keyframes reveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-1 { animation-delay: 0.04s; }
+.reveal-2 { animation-delay: 0.10s; }
+.reveal-3 { animation-delay: 0.16s; }
+.reveal-4 { animation-delay: 0.22s; }
+.reveal-5 { animation-delay: 0.30s; }
+.reveal-6 { animation-delay: 0.38s; }
+
+/* =========================================================
+   Modal
+   ========================================================= */
+.modal-back {
+  position: fixed;
+  inset: 0;
+  background: rgba(51,0,68,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+.modal-back.show { display: flex; }
+.modal {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 22px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: var(--shadow-lg);
+  border-top: 4px solid var(--pp-purple-600);
+}
+.modal h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--pp-purple-900);
+}
+.modal p { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+.modal input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 9px 11px;
+  font-size: 14px;
+  margin-bottom: 14px;
+  background: var(--bg);
+}
+.modal input:focus { outline: 2px solid var(--pp-purple-300); outline-offset: 1px; border-color: var(--pp-purple-600); background: var(--paper); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-ghost {
+  padding: 8px 14px; border-radius: 4px; color: var(--muted);
+  font-size: 13px; font-weight: 600;
+}
+.btn-ghost:hover { color: var(--ink); }
+.btn-solid {
+  padding: 8px 16px; border-radius: 4px; background: var(--pp-purple-600);
+  color: #fff; font-size: 13px; font-weight: 600;
+  transition: background 0.14s ease;
+}
+.btn-solid:hover { background: var(--pp-purple-700); }
+
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--pp-purple-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media print {
+  .connection-strip, .filter-bar, .saved-views, .panel-actions, .xref-ask { display: none !important; }
+  .panel, .integration, .xref { box-shadow: none; break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Masthead -->
+  <header class="masthead reveal">
+    <div class="brand">
+      <img src="pp-logo.png" alt="Positive Partnerships — working together to support autistic school-aged students" class="brand-logo">
+      <div class="masthead-title">
+        <h1>Analytics Hub</h1>
+        <div class="sub">One Claude session · all platforms</div>
+      </div>
+    </div>
+    <div class="masthead-mid">
+      <span class="proto-pill">Prototype · Mock data</span>
+      <span class="today-stamp" id="today-stamp">Mon · 18 May 2026</span>
+    </div>
+    <div class="connection-strip" aria-label="Platform connection status">
+      <span class="label"><strong>CLAUDE</strong> · 3 live · 5 bridged · 1 manual</span>
+      <div class="platform-dots">
+        <span class="dot live"   data-tooltip="Meta Ads · Native MCP · Live"></span>
+        <span class="dot live"   data-tooltip="Arlo · via Zapier MCP · Live"></span>
+        <span class="dot live"   data-tooltip="Jotform · Native MCP · Live"></span>
+        <span class="dot bridge" data-tooltip="Later.com · Publishing schedule · API bridge"></span>
+        <span class="dot bridge" data-tooltip="Google Analytics 4 · API bridge needed"></span>
+        <span class="dot bridge" data-tooltip="Google Ads · API bridge needed"></span>
+        <span class="dot bridge" data-tooltip="LinkedIn · Marketing API · pending"></span>
+        <span class="dot bridge" data-tooltip="Threads · Threads API · pending"></span>
+        <span class="dot manual" data-tooltip="AEO / GEO · Manual export"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero reveal reveal-1">
+    <h2>What did the Sydney boost <span class="accent">actually do</span> to registrations?</h2>
+    <p class="hero-lede">
+      A single view across workshops, social, search and AI mentions.
+      Cross-reference any signal — <strong>ask Claude follow-ups in plain English.</strong>
+    </p>
+  </section>
+
+  <!-- KPIs -->
+  <section class="kpis reveal reveal-2" aria-label="Key performance indicators">
+    <div class="kpi">
+      <div class="kpi-label">
+        <span class="eyebrow">Active Registrations</span>
+        <span class="kpi-source">Arlo + Jotform</span>
+      </div>
+      <div class="kpi-value">534</div>
+      <div class="kpi-foot">
+        <span class="kpi-trend">12% vs last 30d</span>
+        <svg class="kpi-spark" viewBox="0 0 80 26" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="#712d90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+            points="0,22 8,20 16,18 24,19 32,16 40,14 48,15 56,11 64,9 72,7 80,5"/>
+          <circle cx="80" cy="5" r="2.5" fill="#dc2d27"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">
+        <span class="eyebrow">Social Reach · 7d</span>
+        <span class="kpi-source">Meta + LinkedIn</span>
+      </div>
+      <div class="kpi-value">47.2<span class="unit">k</span></div>
+      <div class="kpi-foot">
+        <span class="kpi-trend">8% week-on-week</span>
+        <svg class="kpi-spark" viewBox="0 0 80 26" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="#712d90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+            points="0,18 8,17 16,20 24,16 32,12 40,15 48,8 56,11 64,6 72,9 80,4"/>
+          <circle cx="80" cy="4" r="2.5" fill="#dc2d27"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">
+        <span class="eyebrow">Website Sessions</span>
+        <span class="kpi-source">GA4</span>
+      </div>
+      <div class="kpi-value">24.6<span class="unit">k</span></div>
+      <div class="kpi-foot">
+        <span class="kpi-trend down">3% vs last week</span>
+        <svg class="kpi-spark" viewBox="0 0 80 26" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="#712d90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+            points="0,8 8,12 16,9 24,14 32,10 40,15 48,12 56,18 64,14 72,17 80,16"/>
+          <circle cx="80" cy="16" r="2.5" fill="#dc2d27"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">
+        <span class="eyebrow">Top Fill Rate</span>
+        <span class="kpi-source red">Sydney</span>
+      </div>
+      <div class="kpi-value">81<span class="unit">%</span></div>
+      <div class="kpi-foot">
+        <span class="kpi-trend">145 / 180 seats</span>
+        <svg class="kpi-spark" viewBox="0 0 80 26" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="#712d90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+            points="0,24 8,22 16,18 24,15 32,12 40,10 48,8 56,7 64,6 72,5 80,5"/>
+          <circle cx="80" cy="5" r="2.5" fill="#dc2d27"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">
+        <span class="eyebrow">Social → Register</span>
+        <span class="kpi-source">Conversion</span>
+      </div>
+      <div class="kpi-value">3.8<span class="unit">%</span></div>
+      <div class="kpi-foot">
+        <span class="kpi-trend">0.4pp this month</span>
+        <svg class="kpi-spark" viewBox="0 0 80 26" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="#712d90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+            points="0,20 8,17 16,18 24,14 32,16 40,12 48,13 56,10 64,11 72,8 80,7"/>
+          <circle cx="80" cy="7" r="2.5" fill="#dc2d27"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">
+        <span class="eyebrow">AI Mentions · 30d</span>
+        <span class="kpi-source red">AEO / GEO</span>
+      </div>
+      <div class="kpi-value">101</div>
+      <div class="kpi-foot">
+        <span class="kpi-trend">22 net new</span>
+        <svg class="kpi-spark" viewBox="0 0 80 26" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="#712d90" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+            points="0,24 8,23 16,20 24,21 32,17 40,16 48,13 56,14 64,9 72,8 80,6"/>
+          <circle cx="80" cy="6" r="2.5" fill="#dc2d27"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="filter-bar reveal reveal-3" aria-label="Filters">
+    <div class="filter-group" id="filter-range">
+      <span class="lab">Range</span>
+      <button class="chip" data-range="7">7d</button>
+      <button class="chip active" data-range="30">30d</button>
+      <button class="chip" data-range="90">90d</button>
+      <button class="chip" data-range="ytd">YTD</button>
+    </div>
+    <div class="filter-group" id="filter-misc">
+      <span class="lab">Filter</span>
+      <select class="filter-select" id="sel-type">
+        <option value="all">All workshop types</option>
+        <option value="pl">Professional Learning</option>
+        <option value="pc">Parent &amp; Carer Workshops</option>
+        <option value="ua">Understanding Autism — Educators</option>
+      </select>
+      <select class="filter-select" id="sel-region">
+        <option value="all">All regions</option>
+        <option value="NSW">NSW</option>
+        <option value="VIC">VIC</option>
+        <option value="QLD">QLD</option>
+        <option value="WA">WA</option>
+        <option value="SA">SA</option>
+        <option value="ACT">ACT</option>
+        <option value="TAS">TAS</option>
+        <option value="NT">NT</option>
+        <option value="Online">Online</option>
+      </select>
+      <span class="lab" style="margin-left:8px;">Audience</span>
+      <button class="chip active" data-aud="all">Everyone</button>
+      <button class="chip" data-aud="educators">Educators</button>
+      <button class="chip" data-aud="parents">Parents &amp; carers</button>
+      <button class="chip" data-aud="autistic">Autistic adults</button>
+    </div>
+    <div class="filter-group">
+      <button class="saved-add" id="save-view-btn">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
+        Save view
+      </button>
+    </div>
+  </section>
+
+  <!-- Saved Views -->
+  <section class="saved-views reveal reveal-3" id="saved-views">
+    <span class="lab">
+      <svg width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5h8v9.5l-4-2.6-4 2.6V1.5Z"/></svg>
+      Saved
+    </span>
+  </section>
+
+  <!-- Cross-reference -->
+  <section class="xref reveal reveal-4" aria-label="Cross reference: social activity vs workshop registrations">
+    <div class="xref-head">
+      <div class="xref-title">
+        <span class="eyebrow purple">The cross-reference</span>
+        <h2>Social activity, and what it <span class="accent">did to registrations</span></h2>
+        <p class="panel-meta">Last 30 days. Social engagement plotted as the curve; workshop registrations plotted as bars. Annotations mark campaign moments. Hover any day to see both signals together.</p>
+      </div>
+      <div class="xref-legend">
+        <div class="legend-item"><span class="legend-swatch" style="background: #712d90;"></span>Social engagement (rolling)</div>
+        <div class="legend-item"><span class="legend-swatch" style="background: #330044;"></span>New registrations (Arlo + Jotform)</div>
+        <div class="legend-item"><span class="legend-swatch" style="background: #ffc107; width: 4px; height: 14px; border-radius: 2px;"></span>Campaign moment</div>
+      </div>
+    </div>
+
+    <div class="xref-controls">
+      <span class="eyebrow" style="margin-right:4px;">Focus</span>
+      <button class="chip active" data-focus="all">All workshops</button>
+      <button class="chip" data-focus="syd">Sydney</button>
+      <button class="chip" data-focus="newc">Newcastle</button>
+      <button class="chip" data-focus="bris">Brisbane Online</button>
+      <button class="chip" data-focus="melb">Melbourne</button>
+    </div>
+
+    <div class="xref-chart-wrap" id="xref-wrap">
+      <svg class="xref-svg" id="xref-svg" viewBox="0 0 1200 380" preserveAspectRatio="none" role="img" aria-label="Cross-reference chart">
+        <defs>
+          <linearGradient id="engagementGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stop-color="#712d90" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#712d90" stop-opacity="0.02"/>
+          </linearGradient>
+          <pattern id="bgDots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.7" fill="#dee2e6" opacity="0.5"/>
+          </pattern>
+        </defs>
+      </svg>
+      <div class="xref-tooltip" id="xref-tooltip"></div>
+    </div>
+
+    <div class="xref-ask">
+      <div class="xref-ask-label">
+        <span class="eyebrow">Ask Claude</span>
+        <span class="lead">A question to start with —</span>
+      </div>
+      <div class="xref-prompts">
+        <button class="ask-chip">
+          <svg class="ask-icon" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 4 4 .8-3 2.9.7 4.1L7 10.8l-3.2 2 .7-4.1-3-2.9 4-.8L7 1Z" fill="#712d90"/></svg>
+          Did the May 3 Instagram boost actually drive Sydney workshop fills?
+        </button>
+        <button class="ask-chip">
+          <svg class="ask-icon" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 4 4 .8-3 2.9.7 4.1L7 10.8l-3.2 2 .7-4.1-3-2.9 4-.8L7 1Z" fill="#712d90"/></svg>
+          Which post had the best parent-to-registration conversion?
+        </button>
+        <button class="ask-chip">
+          <svg class="ask-icon" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 4 4 .8-3 2.9.7 4.1L7 10.8l-3.2 2 .7-4.1-3-2.9 4-.8L7 1Z" fill="#712d90"/></svg>
+          Where did Brisbane Online registrants come from?
+        </button>
+        <button class="ask-chip">
+          <svg class="ask-icon" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 4 4 .8-3 2.9.7 4.1L7 10.8l-3.2 2 .7-4.1-3-2.9 4-.8L7 1Z" fill="#712d90"/></svg>
+          What's the spend-per-registration this month vs last?
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workshops + Social -->
+  <section class="two-col">
+    <div class="panel reveal reveal-5" aria-label="Workshops">
+      <div class="panel-head">
+        <div>
+          <h2>Workshops — upcoming</h2>
+          <div class="panel-meta">Real-time from Arlo · cross-checked against Jotform inbound</div>
+        </div>
+        <div class="panel-actions">
+          <button class="icon-btn" title="Sort by date" id="sort-date" aria-label="Sort by date">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="10" height="10" rx="1.5"/><path d="M2 5.5h10M5 1v3M9 1v3"/></svg>
+          </button>
+          <button class="icon-btn" title="Sort by fill rate" id="sort-fill" aria-label="Sort by fill rate">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11h10M2 8h7M2 5h4"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="workshop-list" id="workshop-list"></div>
+    </div>
+
+    <div class="panel reveal reveal-6" aria-label="Social media performance">
+      <div class="panel-head">
+        <div>
+          <h2>Social — this week</h2>
+          <div class="panel-meta">Top posts across channels · scheduled in Later · promo posts marked</div>
+        </div>
+      </div>
+      <div class="social-tabs" id="social-tabs">
+        <button class="social-tab active" data-tab="fb"><span>Facebook</span><span class="ct">18.4k</span></button>
+        <button class="social-tab" data-tab="ig"><span>Instagram</span><span class="ct">21.7k</span></button>
+        <button class="social-tab" data-tab="th"><span>Threads</span><span class="ct">3.9k</span></button>
+        <button class="social-tab" data-tab="li"><span>LinkedIn</span><span class="ct">3.2k</span></button>
+      </div>
+      <div class="social-summary" id="social-summary"></div>
+      <div class="post-list" id="post-list"></div>
+    </div>
+  </section>
+
+  <!-- Website & Search -->
+  <section class="panel reveal reveal-6" aria-label="Website and search">
+    <div class="panel-head">
+      <div>
+        <h2>Website &amp; search</h2>
+        <div class="panel-meta">Where the visits and the searches came from</div>
+      </div>
+    </div>
+    <div class="web-grid">
+      <div class="web-cell">
+        <h3>Traffic sources <span class="src">GA4</span></h3>
+        <div class="sources-list" id="sources-list"></div>
+      </div>
+      <div class="web-cell">
+        <h3>Top pages <span class="src">GA4</span></h3>
+        <div class="page-list" id="page-list"></div>
+      </div>
+      <div class="web-cell">
+        <h3>Paid + AI visibility <span class="src amber">Google Ads · AEO</span></h3>
+        <div class="ads-grid">
+          <div class="ad-cell">
+            <span class="eyebrow">Spend · 30d</span>
+            <span class="val">$4,280</span>
+          </div>
+          <div class="ad-cell">
+            <span class="eyebrow">Clicks</span>
+            <span class="val">1,820</span>
+          </div>
+          <div class="ad-cell">
+            <span class="eyebrow">Cost / click</span>
+            <span class="val muted">$2.35</span>
+          </div>
+          <div class="ad-cell">
+            <span class="eyebrow">Conversions</span>
+            <span class="val">142</span>
+          </div>
+        </div>
+        <div class="aeo-section">
+          <h3 style="margin-bottom:4px;">Surfacing in AI answers <span class="src amber">Manual</span></h3>
+          <div class="aeo-bars" id="aeo-bars">
+            <div class="aeo-row"><div class="aeo-name">ChatGPT</div><div class="source-bar"><div class="aeo-bar-fill" style="width: 92%"></div></div><div class="aeo-val">47</div></div>
+            <div class="aeo-row"><div class="aeo-name">Perplexity</div><div class="source-bar"><div class="aeo-bar-fill" style="width: 46%"></div></div><div class="aeo-val">23</div></div>
+            <div class="aeo-row"><div class="aeo-name">Claude</div><div class="source-bar"><div class="aeo-bar-fill" style="width: 38%"></div></div><div class="aeo-val">19</div></div>
+            <div class="aeo-row"><div class="aeo-name">Gemini</div><div class="source-bar"><div class="aeo-bar-fill" style="width: 24%"></div></div><div class="aeo-val">12</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integration Status -->
+  <section class="integration reveal reveal-6" aria-label="Integration status">
+    <div class="panel-head">
+      <div>
+        <h2>Integration roadmap</h2>
+        <div class="panel-meta">An honest picture of what speaks to Claude today, and what needs a bridge</div>
+      </div>
+    </div>
+    <div class="integration-key">
+      <span><span class="key-dot live"></span> Native MCP · live in Claude today</span>
+      <span><span class="key-dot bridge"></span> API bridge · build a small adapter</span>
+      <span><span class="key-dot manual"></span> Manual · CSV / scheduled export</span>
+    </div>
+    <table class="integration-table" role="table">
+      <thead>
+        <tr>
+          <th style="width:36%;">Platform</th>
+          <th style="width:20%;">Method</th>
+          <th style="width:14%;">Status</th>
+          <th>Next step</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#e7f0ff;color:#1877F2;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.1h-3.1V8.9c0-.9.3-1.5 1.6-1.5h1.7V4.6c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.3H7.5V14h2.7v8h3.3Z"/></svg></div>
+              <div>
+                <div class="platform-name">Meta Ads — Facebook + Instagram</div>
+                <div class="platform-note">Reach, engagement, paid spend, audience</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag native">Native MCP</span></td>
+          <td><span class="status-cell"><span class="key-dot live"></span>Live</span></td>
+          <td class="next-step">Already connected. Start with weekly "top promo by reach" pulls.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#f5eff7;color:#712d90;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1Zm2 3v3h3V7H7Zm0 4v3h3v-3H7Zm4-4v3h6V7h-6Zm0 4v3h6v-3h-6Zm-4 4v3h3v-3H7Zm4 0v3h6v-3h-6Z"/></svg></div>
+              <div>
+                <div class="platform-name">Arlo</div>
+                <div class="platform-note">Registrations, events, contacts, organisations</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag native">Native MCP · Zapier</span></td>
+          <td><span class="status-cell"><span class="key-dot live"></span>Live</span></td>
+          <td class="next-step">Connected via Zapier MCP. Surface live registration counts on this dashboard.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#fff1e6;color:#FF6B00;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14v3H5V4Zm0 5h14v3H5V9Zm0 5h14v3H5v-3Z"/></svg></div>
+              <div>
+                <div class="platform-name">Jotform</div>
+                <div class="platform-note">Inbound expressions of interest, sign-ups outside Arlo</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag native">Native MCP</span></td>
+          <td><span class="status-cell"><span class="key-dot live"></span>Live</span></td>
+          <td class="next-step">Connected. Map fields back to Arlo events so we don't double-count.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#e6f4ff;color:#3B82F6;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2Zm1 4v12h12V7H6Zm2 2h3v3H8V9Zm5 0h3v3h-3V9Zm-5 5h3v3H8v-3Zm5 0h3v3h-3v-3Z"/></svg></div>
+              <div>
+                <div class="platform-name">Later.com</div>
+                <div class="platform-note">Cross-channel publishing schedule · scheduled vs published · per-post performance</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag bridge">API bridge</span></td>
+          <td><span class="status-cell"><span class="key-dot bridge"></span>To build</span></td>
+          <td class="next-step">Later API exposes the calendar + post performance. Bridge lets Claude align a campaign plan against Arlo registrations.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#fff8e0;color:#a26800;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Zm8 4 4-4-4-4v3H7v2h5v3Z"/></svg></div>
+              <div>
+                <div class="platform-name">Google Analytics 4</div>
+                <div class="platform-note">Sessions, sources, top pages, funnel</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag bridge">API bridge</span></td>
+          <td><span class="status-cell"><span class="key-dot bridge"></span>To build</span></td>
+          <td class="next-step">~1 day: small service that proxies GA4 Data API to Claude as an MCP tool.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#e7f0ff;color:#4285F4;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 22h7l3-6 3 6h7L12 2Z"/></svg></div>
+              <div>
+                <div class="platform-name">Google Ads</div>
+                <div class="platform-note">Spend, clicks, conversions, keyword performance</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag bridge">API bridge</span></td>
+          <td><span class="status-cell"><span class="key-dot bridge"></span>To build</span></td>
+          <td class="next-step">Requires developer token + OAuth. Plan alongside GA4 bridge.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#e6f0fb;color:#0A66C2;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v16H4V4Zm6 6h3.7v2.2h.1c.5-.9 1.8-1.9 3.7-1.9 4 0 4.7 2.6 4.7 6V20h-4v-6c0-1.4 0-3.2-2-3.2s-2.3 1.5-2.3 3.1V20h-4V10Z"/></svg></div>
+              <div>
+                <div class="platform-name">LinkedIn (Marketing)</div>
+                <div class="platform-note">Org page analytics, sponsored content</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag bridge">API bridge</span></td>
+          <td><span class="status-cell"><span class="key-dot bridge"></span>Pending app approval</span></td>
+          <td class="next-step">Apply for LinkedIn Marketing API access via developer portal.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#e6e6e6;color:#212529;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.7 0 3.3-.4 4.7-1.2l-1-1.7C14.5 19.7 13.3 20 12 20c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8c0 1-.2 2-.5 2.9l1.8.7c.5-1.1.7-2.3.7-3.6 0-5.5-4.5-10-10-10Zm-1 5v6l5.2 3.1.8-1.4-4-2.4V7h-2Z"/></svg></div>
+              <div>
+                <div class="platform-name">Threads</div>
+                <div class="platform-note">Posts, replies, reach</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag bridge">API bridge</span></td>
+          <td><span class="status-cell"><span class="key-dot bridge"></span>To build</span></td>
+          <td class="next-step">Threads API is newer but functional. Bundle with Meta bridge.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#fbe5e4;color:#dc2d27;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 12l9 9 9-9-9-9Zm0 4 5 5-5 5-5-5 5-5Z"/></svg></div>
+              <div>
+                <div class="platform-name">AEO / GEO visibility</div>
+                <div class="platform-note">Mentions in ChatGPT, Perplexity, Claude, Gemini answers</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag manual">Manual / Emerging</span></td>
+          <td><span class="status-cell"><span class="key-dot manual"></span>Manual</span></td>
+          <td class="next-step">Trial Profound or Otterly.ai. Until APIs stabilise, schedule weekly CSV.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="platform-cell">
+              <div class="platform-icon" style="background:#d6efe1;color:#198754;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h11l5 5v11H4V4Zm10 1v5h5l-5-5Z"/></svg></div>
+              <div>
+                <div class="platform-name">Google Drive — exports</div>
+                <div class="platform-note">Catch-all: anything that can land as a CSV</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="method-tag native">Native MCP</span></td>
+          <td><span class="status-cell"><span class="key-dot live"></span>Live</span></td>
+          <td class="next-step">Useful fallback for any platform without a clean API.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Footer -->
+  <footer class="foot reveal reveal-6">
+    <div class="note">
+      <strong>A prototype, not a promise.</strong>
+      Built 18 May 2026 to start the integration conversation. The live boxes are real today — Meta Ads, Arlo and Jotform already speak Claude through MCP. The bridged boxes are a few days of small adapter work each. Real numbers replace the mock data as each connection is wired up.
+    </div>
+    <div class="foot-meta">
+      Analytics Hub · v0.2 prototype<br>
+      <a href="#" id="export-link">Export roadmap PDF</a>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Save view modal -->
+<div class="modal-back" id="modal-back">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title">Name this view</h3>
+    <p>Saves your current filters locally so you can jump back to them in one click.</p>
+    <input type="text" id="view-name-input" placeholder="e.g. NSW educator funnel" maxlength="40" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="modal-cancel">Cancel</button>
+      <button class="btn-solid" id="modal-save">Save view</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   Mock data
+   ========================================================= */
+const WORKSHOPS = [
+  { id: 'syd',  name: 'Understanding Autism — Educators',         loc: 'Sydney',           region: 'NSW', date: '2026-05-28', type: 'ua', aud: 'educators', reg: 145, cap: 180, arlo: 132, jotform: 13 },
+  { id: 'newc', name: 'Parent & Carer Workshop',                  loc: 'Newcastle',        region: 'NSW', date: '2026-05-22', type: 'pc', aud: 'parents',   reg:  42, cap:  60, arlo:  38, jotform:  4 },
+  { id: 'bris', name: 'Professional Learning',                    loc: 'Brisbane Online',  region: 'Online', date: '2026-06-04', type: 'pl', aud: 'educators', reg: 89, cap: 200, arlo: 89, jotform: 0 },
+  { id: 'melb', name: 'Understanding Autism — Educators',         loc: 'Melbourne',        region: 'VIC', date: '2026-06-11', type: 'ua', aud: 'educators', reg:  67, cap: 180, arlo:  60, jotform:  7 },
+  { id: 'per',  name: 'Parent & Carer Workshop',                  loc: 'Perth',            region: 'WA',  date: '2026-06-18', type: 'pc', aud: 'parents',   reg:  23, cap:  60, arlo:  21, jotform:  2 },
+  { id: 'adel', name: 'Professional Learning',                    loc: 'Adelaide',         region: 'SA',  date: '2026-06-25', type: 'pl', aud: 'educators', reg:  12, cap: 150, arlo:  12, jotform:  0 },
+  { id: 'onl',  name: 'Understanding Autism — Educators',         loc: 'Online',           region: 'Online', date: '2026-07-02', type: 'ua', aud: 'educators', reg: 156, cap: 250, arlo: 140, jotform: 16 },
+  { id: 'hob',  name: 'Parent & Carer Workshop',                  loc: 'Hobart',           region: 'TAS', date: '2026-07-09', type: 'pc', aud: 'parents',   reg:  18, cap:  50, arlo:  17, jotform:  1 },
+  { id: 'cbr',  name: 'Co-Designed Workshop — Autistic Adults',   loc: 'Canberra',         region: 'ACT', date: '2026-07-16', type: 'ua', aud: 'autistic',  reg:  28, cap:  40, arlo:  26, jotform:  2 }
+];
+
+const POSTS = {
+  fb: {
+    reach: '18.4k', engage: '4.2%', clicks: '612',
+    items: [
+      { promo: true,  text: 'Registrations now open for our Sydney educator workshop — 28 May. A small day. A big shift in how a classroom feels.', metrics: { reach: '7.8k', eng: '6.1%', clicks: '241' }},
+      { promo: false, text: 'New resource: a short guide for the first two weeks of school, written with parents of recently-diagnosed kids.',         metrics: { reach: '4.4k', eng: '3.9%', clicks: '128' }},
+      { promo: true,  text: 'Just three spots left for Newcastle Parent & Carer Workshop on 22 May. We hope you can join us.',                       metrics: { reach: '3.6k', eng: '5.0%', clicks: '157' }}
+    ]
+  },
+  ig: {
+    reach: '21.7k', engage: '5.9%', clicks: '388',
+    items: [
+      { promo: true,  text: '5 things to know before your first PP workshop · Sydney 28 May · Carousel — link in bio.',                              metrics: { reach: '9.1k', eng: '8.2%', clicks: '186' }},
+      { promo: false, text: 'Reel: what educators said one term after a PP workshop. Honest, unprompted, three minutes.',                            metrics: { reach: '6.8k', eng: '7.1%', clicks: '94' }},
+      { promo: true,  text: 'Brisbane Online is open for registration — flexible for regional educators across QLD and NT.',                         metrics: { reach: '3.2k', eng: '4.4%', clicks: '71' }}
+    ]
+  },
+  th: {
+    reach: '3.9k', engage: '2.8%', clicks: '94',
+    items: [
+      { promo: false, text: 'Reading these new resources from AutismCRC tonight. The chapter on co-design is doing a lot of heavy lifting.',         metrics: { reach: '1.8k', eng: '4.1%', clicks: '38' }},
+      { promo: true,  text: 'Tomorrow\'s online workshop has 12 spots left — link in profile.',                                                      metrics: { reach: '1.2k', eng: '3.0%', clicks: '41' }},
+      { promo: false, text: 'Hot take from today\'s workshop: the most useful thing we taught wasn\'t a strategy, it was a way of noticing.',         metrics: { reach: '0.9k', eng: '2.2%', clicks: '15' }}
+    ]
+  },
+  li: {
+    reach: '3.2k', engage: '3.6%', clicks: '128',
+    items: [
+      { promo: false, text: 'Why professional learning for educators needs co-design with autistic adults — a short read for school leadership.',     metrics: { reach: '1.4k', eng: '4.8%', clicks: '64' }},
+      { promo: true,  text: 'Open enrolment: Professional Learning cohorts (Brisbane Online, Adelaide, Melbourne) for term 3.',                       metrics: { reach: '1.0k', eng: '3.2%', clicks: '41' }},
+      { promo: false, text: 'We\'re hiring workshop facilitators across NSW and VIC. Closing 28 May.',                                                metrics: { reach: '0.8k', eng: '2.7%', clicks: '23' }}
+    ]
+  }
+};
+
+const SOURCES = [
+  { name: 'Google Organic', pct: 42, sessions: '10,318', col: '' },
+  { name: 'Direct',         pct: 18, sessions: '4,422',  col: 'amber' },
+  { name: 'Facebook',       pct: 12, sessions: '2,948',  col: 'coral' },
+  { name: 'Instagram',      pct:  8, sessions: '1,966',  col: 'coral' },
+  { name: 'Email',          pct:  6, sessions: '1,474',  col: 'moss'  },
+  { name: 'LinkedIn',       pct:  4, sessions: '982',    col: 'amber' },
+  { name: 'ChatGPT / Perplexity', pct: 3, sessions: '737', col: 'coral' },
+  { name: 'Other',          pct:  7, sessions: '1,720',  col: '' }
+];
+
+const PAGES = [
+  { path: '/workshops',           views: '6,142' },
+  { path: '/resources/parents',   views: '3,820' },
+  { path: '/educators/sydney',    views: '2,418' },
+  { path: '/about/who-we-are',    views: '1,940' },
+  { path: '/workshops/brisbane',  views: '1,612' },
+  { path: '/resources/educators', views: '1,488' }
+];
+
+const XREF_DAYS = (() => {
+  const arr = [];
+  const end = new Date('2026-05-18');
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(end); d.setDate(end.getDate() - i);
+    arr.push({ date: d, label: d.getDate() + ' ' + d.toLocaleString('en-AU', { month: 'short' }) });
+  }
+  return arr;
+})();
+
+const ENGAGEMENT = [
+  410, 380, 420, 470, 450, 520, 580,
+  610, 590, 640, 720, 850, 1240, 1480,
+  1280, 1010, 940, 900, 870, 920, 1080,
+  1320, 1620, 1480, 1240, 1060, 980, 1050, 1180, 1340
+];
+const REGS = [
+  4, 5, 3, 6, 8, 7, 5,
+  6, 8, 4, 7, 11, 18, 24,
+  19, 14, 11, 9, 8, 12, 16,
+  22, 28, 19, 14, 12, 10, 13, 17, 21
+];
+const ANNOTATIONS = [
+  { day: 11, label: 'Instagram boost · Sydney',      sub: 'May 3 · Later + $420 spend' },
+  { day: 18, label: 'Facebook series · Newcastle',   sub: 'May 10 · scheduled in Later' },
+  { day: 24, label: 'Email · Brisbane Online opens', sub: 'May 16 · 8,200 sends' }
+];
+
+/* =========================================================
+   State + persistence
+   ========================================================= */
+const STORAGE_KEY = 'pp_dashboard_state_v2';
+const VIEWS_KEY  = 'pp_dashboard_views_v2';
+
+const state = {
+  range: '30',
+  type: 'all',
+  region: 'all',
+  aud: 'all',
+  focus: 'all',
+  social: 'fb',
+  sort: 'date'
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) Object.assign(state, JSON.parse(raw));
+  } catch(e){}
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function loadViews() {
+  try { return JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]'); } catch(e){ return []; }
+}
+function saveViews(v) {
+  try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v)); } catch(e){}
+}
+
+/* =========================================================
+   Filter helpers
+   ========================================================= */
+function filteredWorkshops() {
+  return WORKSHOPS
+    .filter(w => state.type === 'all' || w.type === state.type)
+    .filter(w => state.region === 'all' || w.region === state.region)
+    .filter(w => state.aud === 'all' || w.aud === state.aud)
+    .sort((a, b) => {
+      if (state.sort === 'fill') return (b.reg / b.cap) - (a.reg / a.cap);
+      return new Date(a.date) - new Date(b.date);
+    });
+}
+
+/* =========================================================
+   Render: workshops
+   ========================================================= */
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+function typeLabel(t) {
+  return t === 'ua' ? 'UA Educators' : t === 'pc' ? 'Parent & Carer' : 'Professional Learning';
+}
+function renderWorkshops() {
+  const wrap = document.getElementById('workshop-list');
+  const list = filteredWorkshops();
+  if (!list.length) { wrap.innerHTML = '<div class="empty">No workshops match the current filters.</div>'; return; }
+  wrap.innerHTML = list.map(w => {
+    const pct = Math.round((w.reg / w.cap) * 100);
+    const fillCls = pct >= 80 ? 'hot' : pct >= 50 ? 'warm' : '';
+    return `
+      <div class="workshop-row">
+        <div class="title-block">
+          <div class="workshop-name">${w.name}</div>
+          <div class="workshop-meta">
+            <span class="workshop-tag ${w.type}">${typeLabel(w.type)}</span>
+            <span>${w.loc}</span>
+            <span class="sep">·</span>
+            <span>${fmtDate(w.date)}</span>
+          </div>
+        </div>
+        <div class="workshop-progress-block">
+          <div class="progress-row">
+            <span class="frac"><strong>${w.reg}</strong> / ${w.cap} seats</span>
+            <span class="pct">${pct}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill ${fillCls}" data-w="${pct}"></div></div>
+          <div class="source-split">
+            <span>Arlo <strong>${w.arlo}</strong></span>
+            <span>Jotform <strong>${w.jotform}</strong></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  requestAnimationFrame(() => {
+    wrap.querySelectorAll('.progress-fill').forEach(el => {
+      el.style.width = el.dataset.w + '%';
+    });
+  });
+}
+
+/* =========================================================
+   Render: social
+   ========================================================= */
+function renderSocial() {
+  document.querySelectorAll('.social-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === state.social);
+  });
+  const data = POSTS[state.social];
+  document.getElementById('social-summary').innerHTML = `
+    <div class="summary-cell">
+      <span class="eyebrow">Reach · 7d</span>
+      <span class="val">${data.reach}</span>
+      <span class="delta">${state.social === 'th' ? 'new' : '+' + (Math.random() * 12 + 3).toFixed(1) + '%'}</span>
+    </div>
+    <div class="summary-cell">
+      <span class="eyebrow">Engagement</span>
+      <span class="val">${data.engage}</span>
+      <span class="delta">vs 3.4% benchmark</span>
+    </div>
+    <div class="summary-cell">
+      <span class="eyebrow">Outbound clicks</span>
+      <span class="val">${data.clicks}</span>
+      <span class="delta">→ /workshops</span>
+    </div>
+  `;
+  document.getElementById('post-list').innerHTML = data.items.map(p => `
+    <div class="post-row">
+      <div class="post-text">
+        ${p.promo ? '<span class="promo-mark">★ Workshop promo</span>' : ''}
+        ${p.text}
+      </div>
+      <div class="post-stats">
+        <div class="row"><span>Reach</span><strong>${p.metrics.reach}</strong></div>
+        <div class="row"><span>Eng.</span><strong>${p.metrics.eng}</strong></div>
+        <div class="row"><span>Clicks</span><strong>${p.metrics.clicks}</strong></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* =========================================================
+   Render: sources + pages
+   ========================================================= */
+function renderWeb() {
+  const sl = document.getElementById('sources-list');
+  sl.innerHTML = SOURCES.map(s => `
+    <div class="source-item">
+      <div class="source-bar-wrap">
+        <span class="source-name">${s.name}</span>
+        <div class="source-bar"><div class="source-bar-fill ${s.col}" data-w="${s.pct * 2.2}"></div></div>
+      </div>
+      <div class="source-stat">
+        <span class="num">${s.sessions}</span>
+        <span class="pct">${s.pct}%</span>
+      </div>
+    </div>
+  `).join('');
+  const pl = document.getElementById('page-list');
+  pl.innerHTML = PAGES.map(p => `
+    <div class="page-row">
+      <span class="page-path">${p.path}</span>
+      <span class="page-views">${p.views}</span>
+    </div>
+  `).join('');
+  requestAnimationFrame(() => {
+    sl.querySelectorAll('.source-bar-fill').forEach(el => { el.style.width = Math.min(100, parseFloat(el.dataset.w)) + '%'; });
+  });
+}
+
+/* =========================================================
+   Cross-reference chart
+   ========================================================= */
+function smoothPath(points) {
+  if (points.length < 2) return '';
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] || points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+  return d;
+}
+
+function renderXref() {
+  const svg = document.getElementById('xref-svg');
+  const W = 1200, H = 380;
+  const m = { top: 44, right: 64, bottom: 50, left: 64 };
+  const innerW = W - m.left - m.right;
+  const innerH = H - m.top - m.bottom;
+  const days = XREF_DAYS;
+  const nDays = days.length;
+  const xStep = innerW / (nDays - 1);
+
+  let scale = 1;
+  if (state.focus === 'syd')  scale = 1.0;
+  else if (state.focus === 'newc') scale = 0.55;
+  else if (state.focus === 'bris') scale = 0.7;
+  else if (state.focus === 'melb') scale = 0.6;
+
+  const eng = ENGAGEMENT.map(v => v * scale);
+  const regs = REGS.map(v => Math.round(v * scale));
+
+  const engMax = Math.max(...eng) * 1.1;
+  const regMax = Math.max(...regs) * 1.2;
+
+  const xAt = i => m.left + i * xStep;
+  const yEng = v => m.top + innerH - (v / engMax) * innerH;
+  const yReg = v => m.top + innerH - (v / regMax) * innerH;
+
+  let gridLines = '';
+  for (let k = 0; k <= 4; k++) {
+    const y = m.top + (innerH * k / 4);
+    gridLines += `<line x1="${m.left}" x2="${m.left + innerW}" y1="${y}" y2="${y}" stroke="#eaecef" stroke-width="1"/>`;
+  }
+
+  let yTicksL = '';
+  for (let k = 0; k <= 4; k++) {
+    const v = Math.round(engMax * (4 - k) / 4 / 100) * 100;
+    const y = m.top + (innerH * k / 4);
+    yTicksL += `<text x="${m.left - 12}" y="${y + 4}" text-anchor="end" fill="#6c757d" font-family="Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="500">${v.toLocaleString()}</text>`;
+  }
+  let yTicksR = '';
+  for (let k = 0; k <= 4; k++) {
+    const v = Math.round(regMax * (4 - k) / 4);
+    const y = m.top + (innerH * k / 4);
+    yTicksR += `<text x="${m.left + innerW + 12}" y="${y + 4}" text-anchor="start" fill="#6c757d" font-family="Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="500">${v}</text>`;
+  }
+  const axisLabels = `
+    <text x="${m.left - 12}" y="${m.top - 14}" text-anchor="end" fill="#712d90" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="0.06em">ENGAGEMENT</text>
+    <text x="${m.left + innerW + 12}" y="${m.top - 14}" text-anchor="start" fill="#330044" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="0.06em">REGISTRATIONS</text>
+  `;
+
+  let xLabels = '';
+  for (let i = 0; i < nDays; i += 5) {
+    xLabels += `<text x="${xAt(i)}" y="${m.top + innerH + 22}" text-anchor="middle" fill="#6c757d" font-family="Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="500">${days[i].label}</text>`;
+  }
+  xLabels += `<text x="${xAt(nDays - 1)}" y="${m.top + innerH + 22}" text-anchor="middle" fill="#330044" font-weight="700" font-family="Helvetica Neue, Arial, sans-serif" font-size="10.5">${days[nDays - 1].label}</text>`;
+
+  const engPts = eng.map((v, i) => ({ x: xAt(i), y: yEng(v) }));
+  const enginePath = smoothPath(engPts);
+  const areaPath = enginePath + ` L ${xAt(nDays - 1)} ${m.top + innerH} L ${m.left} ${m.top + innerH} Z`;
+
+  const barW = Math.max(6, xStep * 0.55);
+  let bars = '';
+  regs.forEach((v, i) => {
+    const x = xAt(i) - barW / 2;
+    const y = yReg(v);
+    const h = m.top + innerH - y;
+    const isAnnotated = ANNOTATIONS.some(a => Math.abs(i - (a.day + 2)) <= 1);
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${isAnnotated ? '#330044' : '#5a2674'}" opacity="${isAnnotated ? 1 : 0.82}"/>`;
+  });
+
+  let annots = '';
+  ANNOTATIONS.forEach(a => {
+    const x = xAt(a.day);
+    const y2 = m.top + innerH - 8;
+    annots += `
+      <g class="annot">
+        <line x1="${x}" x2="${x}" y1="${m.top}" y2="${y2}" stroke="#ffc107" stroke-width="1.4" stroke-dasharray="2 3" opacity="0.85"/>
+        <circle cx="${x}" cy="${m.top}" r="4" fill="#ffc107" stroke="#ffffff" stroke-width="1.5"/>
+        <g transform="translate(${x + 10}, ${m.top - 26})">
+          <rect x="0" y="0" rx="4" ry="4" width="${a.label.length * 6.2 + 14}" height="38" fill="#ffffff" stroke="#dee2e6"/>
+          <text x="8" y="15" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#330044">${a.label}</text>
+          <text x="8" y="29" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="500" fill="#6c757d">${a.sub}</text>
+        </g>
+      </g>
+    `;
+  });
+
+  let hover = '';
+  for (let i = 0; i < nDays; i++) {
+    const x = xAt(i) - xStep / 2;
+    hover += `<rect class="hover-zone" data-i="${i}" x="${x}" y="${m.top - 16}" width="${xStep}" height="${innerH + 24}" fill="transparent" />`;
+  }
+  hover += `<line id="hover-line" x1="0" x2="0" y1="${m.top}" y2="${m.top + innerH}" stroke="#330044" stroke-width="1" stroke-dasharray="2 3" opacity="0"/>`;
+  hover += `<circle id="hover-pt" cx="0" cy="0" r="5" fill="#712d90" stroke="#ffffff" stroke-width="2" opacity="0"/>`;
+
+  svg.innerHTML = `
+    <rect x="${m.left}" y="${m.top}" width="${innerW}" height="${innerH}" fill="url(#bgDots)" opacity="0.5"/>
+    ${gridLines}
+    <path d="${areaPath}" fill="url(#engagementGrad)"/>
+    <path d="${enginePath}" fill="none" stroke="#712d90" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+    ${bars}
+    ${axisLabels}
+    ${yTicksL}
+    ${yTicksR}
+    ${xLabels}
+    ${annots}
+    ${hover}
+  `;
+
+  svg._engPts = engPts;
+  svg._regs = regs;
+  svg._eng  = eng;
+  svg._days = days;
+
+  attachHoverHandlers();
+}
+
+function attachHoverHandlers() {
+  const svg = document.getElementById('xref-svg');
+  const tooltip = document.getElementById('xref-tooltip');
+  const wrap = document.getElementById('xref-wrap');
+  const guide = svg.querySelector('#hover-line');
+  const pt = svg.querySelector('#hover-pt');
+  svg.querySelectorAll('.hover-zone').forEach(z => {
+    z.style.cursor = 'pointer';
+    z.addEventListener('mouseenter', () => {
+      const i = +z.dataset.i;
+      const engPt = svg._engPts[i];
+      const eng = svg._eng[i];
+      const reg = svg._regs[i];
+      const day = svg._days[i];
+      guide.setAttribute('x1', engPt.x);
+      guide.setAttribute('x2', engPt.x);
+      guide.setAttribute('opacity', 0.22);
+      pt.setAttribute('cx', engPt.x);
+      pt.setAttribute('cy', engPt.y);
+      pt.setAttribute('opacity', 1);
+      const rect = svg.getBoundingClientRect();
+      const wrapRect = wrap.getBoundingClientRect();
+      const xRatio = engPt.x / 1200;
+      const yRatio = engPt.y / 380;
+      const cssX = (rect.left - wrapRect.left) + xRatio * rect.width;
+      const cssY = (rect.top - wrapRect.top) + yRatio * rect.height;
+      tooltip.style.left = cssX + 'px';
+      tooltip.style.top  = (cssY - 16) + 'px';
+      tooltip.innerHTML = `
+        <div class="tt-date">${day.label}</div>
+        <div class="tt-row"><span class="tt-label">Engagement</span><strong>${Math.round(eng).toLocaleString()}</strong></div>
+        <div class="tt-row"><span class="tt-label">Registrations</span><strong>${reg}</strong></div>
+      `;
+      tooltip.classList.add('show');
+    });
+    z.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('show');
+      guide.setAttribute('opacity', 0);
+      pt.setAttribute('opacity', 0);
+    });
+  });
+}
+
+/* =========================================================
+   Filters wiring
+   ========================================================= */
+function reflectStateUI() {
+  document.querySelectorAll('#filter-range .chip').forEach(c => c.classList.toggle('active', c.dataset.range === state.range));
+  document.querySelectorAll('#filter-misc .chip').forEach(c => c.classList.toggle('active', c.dataset.aud === state.aud));
+  document.querySelectorAll('.xref-controls .chip').forEach(c => c.classList.toggle('active', c.dataset.focus === state.focus));
+  document.getElementById('sel-type').value = state.type;
+  document.getElementById('sel-region').value = state.region;
+}
+
+function wireFilters() {
+  document.querySelectorAll('#filter-range .chip').forEach(c => {
+    c.addEventListener('click', () => { state.range = c.dataset.range; reflectStateUI(); saveState(); });
+  });
+  document.querySelectorAll('#filter-misc .chip').forEach(c => {
+    c.addEventListener('click', () => { state.aud = c.dataset.aud; reflectStateUI(); renderWorkshops(); saveState(); });
+  });
+  document.querySelectorAll('.xref-controls .chip').forEach(c => {
+    c.addEventListener('click', () => { state.focus = c.dataset.focus; reflectStateUI(); renderXref(); saveState(); });
+  });
+  document.getElementById('sel-type').addEventListener('change', e => { state.type = e.target.value; renderWorkshops(); saveState(); });
+  document.getElementById('sel-region').addEventListener('change', e => { state.region = e.target.value; renderWorkshops(); saveState(); });
+  document.getElementById('sort-date').addEventListener('click', () => { state.sort = 'date'; renderWorkshops(); saveState(); });
+  document.getElementById('sort-fill').addEventListener('click', () => { state.sort = 'fill'; renderWorkshops(); saveState(); });
+  document.querySelectorAll('.social-tab').forEach(t => {
+    t.addEventListener('click', () => { state.social = t.dataset.tab; renderSocial(); saveState(); });
+  });
+}
+
+/* =========================================================
+   Saved views
+   ========================================================= */
+function renderSavedViews() {
+  const wrap = document.getElementById('saved-views');
+  const views = loadViews();
+  wrap.querySelectorAll('.saved-pill').forEach(el => el.remove());
+  views.forEach(v => {
+    const el = document.createElement('button');
+    el.className = 'saved-pill';
+    el.innerHTML = `<span>${v.name}</span><span class="x" data-id="${v.id}" title="Remove">×</span>`;
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('x')) {
+        const id = e.target.dataset.id;
+        saveViews(loadViews().filter(x => x.id !== id));
+        renderSavedViews();
+        return;
+      }
+      Object.assign(state, v.state);
+      saveState();
+      reflectStateUI();
+      renderWorkshops();
+      renderSocial();
+      renderXref();
+    });
+    wrap.appendChild(el);
+  });
+  if (views.length === 0) {
+    const hint = document.createElement('span');
+    hint.className = 'saved-pill';
+    hint.style.borderStyle = 'dashed';
+    hint.style.color = 'var(--soft)';
+    hint.style.background = 'transparent';
+    hint.style.cursor = 'default';
+    hint.innerHTML = '<span style="font-size:11.5px; letter-spacing:0.02em;">No saved views yet — save the current filter combo →</span>';
+    wrap.appendChild(hint);
+  }
+}
+
+function wireSaveView() {
+  const back = document.getElementById('modal-back');
+  const input = document.getElementById('view-name-input');
+  document.getElementById('save-view-btn').addEventListener('click', () => {
+    input.value = '';
+    back.classList.add('show');
+    setTimeout(() => input.focus(), 50);
+  });
+  document.getElementById('modal-cancel').addEventListener('click', () => back.classList.remove('show'));
+  back.addEventListener('click', e => { if (e.target === back) back.classList.remove('show'); });
+  function commit() {
+    const name = input.value.trim() || 'Untitled view';
+    const views = loadViews();
+    views.push({ id: 'v' + Date.now(), name, state: { ...state } });
+    saveViews(views);
+    back.classList.remove('show');
+    renderSavedViews();
+  }
+  document.getElementById('modal-save').addEventListener('click', commit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') back.classList.remove('show'); });
+}
+
+function setToday() {
+  const d = new Date('2026-05-18');
+  document.getElementById('today-stamp').textContent =
+    d.toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function init() {
+  loadState();
+  setToday();
+  reflectStateUI();
+  renderWorkshops();
+  renderSocial();
+  renderWeb();
+  renderXref();
+  renderSavedViews();
+  wireFilters();
+  wireSaveView();
+
+  let rt;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => renderXref(), 150);
+  });
+
+  document.querySelectorAll('.ask-chip').forEach(c => {
+    c.addEventListener('click', () => {
+      c.style.background = 'var(--pp-purple-900)';
+      c.style.borderColor = 'var(--pp-purple-900)';
+      c.style.color = '#fff';
+      setTimeout(() => {
+        c.style.background = '';
+        c.style.borderColor = '';
+        c.style.color = '';
+      }, 500);
+    });
+  });
+
+  document.getElementById('export-link').addEventListener('click', e => e.preventDefault());
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

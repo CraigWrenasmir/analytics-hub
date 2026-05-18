@@ -240,12 +240,107 @@ a:hover { text-decoration: underline; }
 .hero h2 {
   font-size: clamp(22px, 2.4vw, 30px);
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.22;
   letter-spacing: -0.015em;
   color: var(--pp-purple-900);
-  max-width: 32ch;
+  max-width: 36ch;
 }
 .hero h2 .accent { color: var(--pp-purple-600); }
+
+/* City picker (in hero) */
+.city-picker {
+  display: inline-block;
+  position: relative;
+  vertical-align: baseline;
+}
+.city-picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--pp-purple-600);
+  border-bottom: 2px dotted var(--pp-purple-300);
+  padding: 0 4px;
+  border-radius: 2px;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+  letter-spacing: inherit;
+  line-height: 1;
+}
+.city-picker-trigger:hover,
+.city-picker-trigger[aria-expanded="true"] {
+  background: var(--pp-purple-50);
+  border-bottom-color: var(--pp-purple-600);
+  color: var(--pp-purple-700);
+}
+.city-picker-caret {
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.city-picker-trigger[aria-expanded="true"] .city-picker-caret {
+  transform: rotate(180deg);
+}
+.city-picker-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--pp-purple-600);
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  min-width: 240px;
+  z-index: 200;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.city-picker-menu.open {
+  display: block;
+  animation: city-menu-in 0.18s ease;
+}
+@keyframes city-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.city-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13.5px;
+  transition: background 0.12s ease, color 0.12s ease;
+  letter-spacing: -0.005em;
+}
+.city-option:hover,
+.city-option:focus-visible {
+  background: var(--pp-purple-50);
+  color: var(--pp-purple-700);
+  outline: none;
+}
+.city-option.active {
+  background: var(--pp-purple-600);
+  color: #fff;
+}
+.city-option .city-stat {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.city-option:hover .city-stat { color: var(--pp-purple-600); }
+.city-option.active .city-stat { color: var(--pp-purple-200); }
 .hero-lede {
   max-width: 42ch;
   color: var(--ink-3);
@@ -1271,7 +1366,17 @@ a:hover { text-decoration: underline; }
 
   <!-- Hero -->
   <section class="hero reveal reveal-1">
-    <h2>What did the Sydney boost <span class="accent">actually do</span> to registrations?</h2>
+    <h2>
+      What did the
+      <span class="city-picker" id="city-picker">
+        <button class="city-picker-trigger" id="city-picker-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose a city">
+          <span id="city-picker-label">Sydney</span>
+          <svg class="city-picker-caret" width="10" height="7" viewBox="0 0 10 7" fill="none" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="city-picker-menu" id="city-picker-menu" role="listbox" aria-label="Pick a city"></div>
+      </span>
+      boost <span class="accent">actually do</span> to registrations?
+    </h2>
     <p class="hero-lede">
       A single view across workshops, social, search and AI mentions.
       Cross-reference any signal — <strong>ask Claude follow-ups in plain English.</strong>
@@ -1475,7 +1580,7 @@ a:hover { text-decoration: underline; }
       <div class="xref-prompts">
         <button class="ask-chip">
           <svg class="ask-icon" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 4 4 .8-3 2.9.7 4.1L7 10.8l-3.2 2 .7-4.1-3-2.9 4-.8L7 1Z" fill="#712d90"/></svg>
-          Did the May 3 Instagram boost actually drive Sydney workshop fills?
+          <span>Did the May 3 Instagram boost actually drive <span id="ask-city-1">Sydney</span> workshop fills?</span>
         </button>
         <button class="ask-chip">
           <svg class="ask-icon" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 4 4 .8-3 2.9.7 4.1L7 10.8l-3.2 2 .7-4.1-3-2.9 4-.8L7 1Z" fill="#712d90"/></svg>
@@ -1874,6 +1979,33 @@ const ANNOTATIONS = [
   { day: 24, label: 'Email · Brisbane Online opens', sub: 'May 16 · 8,200 sends' }
 ];
 
+/* Cities for the hero picker. key matches WORKSHOPS.id so we can derive fill rate */
+const CITIES = [
+  { key: 'syd',  name: 'Sydney' },
+  { key: 'melb', name: 'Melbourne' },
+  { key: 'bris', name: 'Brisbane' },
+  { key: 'newc', name: 'Newcastle' },
+  { key: 'per',  name: 'Perth' },
+  { key: 'adel', name: 'Adelaide' },
+  { key: 'cbr',  name: 'Canberra' },
+  { key: 'hob',  name: 'Hobart' },
+  { key: 'onl',  name: 'Online' }
+];
+
+/* Per-city scale on the cross-reference chart */
+const FOCUS_SCALES = {
+  all:  1.0,
+  syd:  1.0,
+  melb: 0.6,
+  bris: 0.7,
+  newc: 0.55,
+  per:  0.5,
+  adel: 0.25,
+  cbr:  0.65,
+  hob:  0.4,
+  onl:  0.85
+};
+
 /* =========================================================
    State + persistence
    ========================================================= */
@@ -1885,7 +2017,8 @@ const state = {
   type: 'all',
   region: 'all',
   aud: 'all',
-  focus: 'all',
+  focus: 'syd',
+  city: 'syd',
   social: 'fb',
   sort: 'date'
 };
@@ -2068,11 +2201,7 @@ function renderXref() {
   const nDays = days.length;
   const xStep = innerW / (nDays - 1);
 
-  let scale = 1;
-  if (state.focus === 'syd')  scale = 1.0;
-  else if (state.focus === 'newc') scale = 0.55;
-  else if (state.focus === 'bris') scale = 0.7;
-  else if (state.focus === 'melb') scale = 0.6;
+  const scale = FOCUS_SCALES[state.focus] != null ? FOCUS_SCALES[state.focus] : 1.0;
 
   const eng = ENGAGEMENT.map(v => v * scale);
   const regs = REGS.map(v => Math.round(v * scale));
@@ -2236,7 +2365,18 @@ function wireFilters() {
     c.addEventListener('click', () => { state.aud = c.dataset.aud; reflectStateUI(); renderWorkshops(); saveState(); });
   });
   document.querySelectorAll('.xref-controls .chip').forEach(c => {
-    c.addEventListener('click', () => { state.focus = c.dataset.focus; reflectStateUI(); renderXref(); saveState(); });
+    c.addEventListener('click', () => {
+      state.focus = c.dataset.focus;
+      // If the chip matches a city, also drive the hero picker
+      if (CITIES.find(x => x.key === c.dataset.focus)) {
+        state.city = c.dataset.focus;
+        applyCityToDashboard();
+        renderCityPicker();
+      }
+      reflectStateUI();
+      renderXref();
+      saveState();
+    });
   });
   document.getElementById('sel-type').addEventListener('change', e => { state.type = e.target.value; renderWorkshops(); saveState(); });
   document.getElementById('sel-region').addEventListener('change', e => { state.region = e.target.value; renderWorkshops(); saveState(); });
@@ -2314,8 +2454,101 @@ function setToday() {
     d.toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+/* =========================================================
+   City picker — hero "What did the [Sydney v] boost actually do?"
+   ========================================================= */
+function getCity(key) {
+  const k = key || state.city;
+  const c = CITIES.find(x => x.key === k) || CITIES[0];
+  const w = WORKSHOPS.find(x => x.id === c.key);
+  return {
+    ...c,
+    workshop: w,
+    fill: w ? Math.round((w.reg / w.cap) * 100) : null
+  };
+}
+
+function renderCityPicker() {
+  const menu = document.getElementById('city-picker-menu');
+  menu.innerHTML = CITIES.map(c => {
+    const w = WORKSHOPS.find(x => x.id === c.key);
+    const fill = w ? Math.round((w.reg / w.cap) * 100) : 0;
+    return `
+      <button class="city-option ${c.key === state.city ? 'active' : ''}" role="option" data-key="${c.key}" type="button">
+        <span>${c.name}</span>
+        <span class="city-stat">${fill}% filled</span>
+      </button>
+    `;
+  }).join('');
+  menu.querySelectorAll('.city-option').forEach(el => {
+    el.addEventListener('click', () => {
+      setCity(el.dataset.key);
+      closePicker();
+    });
+  });
+}
+
+function applyCityToDashboard() {
+  const c = getCity();
+  // Hero label
+  document.getElementById('city-picker-label').textContent = c.name;
+  // Ask Claude chip 1
+  const askCity = document.getElementById('ask-city-1');
+  if (askCity) askCity.textContent = c.name;
+  // Top Fill Rate KPI — eyebrow, pill, value, trend
+  const kpi = document.querySelectorAll('.kpis .kpi')[3];
+  if (kpi && c.workshop) {
+    const eyebrow = kpi.querySelector('.eyebrow');
+    const pill    = kpi.querySelector('.kpi-source');
+    const val     = kpi.querySelector('.kpi-value');
+    const trend   = kpi.querySelector('.kpi-trend');
+    if (eyebrow) eyebrow.textContent = c.key === 'syd' ? 'Top Fill Rate' : 'Workshop Fill Rate';
+    if (pill)    pill.textContent = c.name;
+    if (val)     val.innerHTML = c.fill + '<span class="unit">%</span>';
+    if (trend)   trend.textContent = c.workshop.reg + ' / ' + c.workshop.cap + ' seats';
+  }
+}
+
+function setCity(key) {
+  state.city = key;
+  state.focus = key; // hero picker drives chart focus too
+  applyCityToDashboard();
+  reflectStateUI();
+  renderXref();
+  renderCityPicker();
+  saveState();
+}
+
+function openPicker() {
+  document.getElementById('city-picker-trigger').setAttribute('aria-expanded', 'true');
+  document.getElementById('city-picker-menu').classList.add('open');
+}
+function closePicker() {
+  document.getElementById('city-picker-trigger').setAttribute('aria-expanded', 'false');
+  document.getElementById('city-picker-menu').classList.remove('open');
+}
+function togglePicker() {
+  const trig = document.getElementById('city-picker-trigger');
+  if (trig.getAttribute('aria-expanded') === 'true') closePicker(); else openPicker();
+}
+
+function wireCityPicker() {
+  document.getElementById('city-picker-trigger').addEventListener('click', e => {
+    e.stopPropagation();
+    togglePicker();
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#city-picker')) closePicker();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePicker();
+  });
+}
+
 function init() {
   loadState();
+  // Guarantee city is a real city (older saved states may have city undefined or focus='all')
+  if (!CITIES.find(c => c.key === state.city)) state.city = 'syd';
   setToday();
   reflectStateUI();
   renderWorkshops();
@@ -2323,8 +2556,11 @@ function init() {
   renderWeb();
   renderXref();
   renderSavedViews();
+  renderCityPicker();
+  applyCityToDashboard();
   wireFilters();
   wireSaveView();
+  wireCityPicker();
 
   let rt;
   window.addEventListener('resize', () => {
